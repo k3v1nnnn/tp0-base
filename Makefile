@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 PWD := $(shell pwd)
+CLIENTS ?= 1
 
 GIT_REMOTE = github.com/7574-sistemas-distribuidos/docker-compose-init
 
@@ -26,6 +27,7 @@ docker-image:
 .PHONY: docker-image
 
 docker-compose-up: docker-image
+	python3 add_clients.py ${CLIENTS}
 	docker compose -f docker-compose-dev.yaml up -d --build
 .PHONY: docker-compose-up
 
