@@ -26,6 +26,18 @@ server_service = """
     networks:
       - testing_net"""
 
+netcat = """
+  netcat:
+    container_name: netcat
+    build:
+      context: .
+      dockerfile: netcat/Dockerfile
+    entrypoint: sh netcat_echo.sh
+    depends_on:
+      - server
+    networks:
+      - testing_net"""
+
 network = """
 networks:
   testing_net:
@@ -53,5 +65,5 @@ for i in range(1, clients + 1):
       - server"""
 
 file = open("docker-compose-dev.yaml", "w")
-file.write(services + server_service + clients_service + "\n" + network + "\n")
+file.write(services + server_service + netcat + clients_service + "\n" + network + "\n")
 file.close()

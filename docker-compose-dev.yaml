@@ -12,6 +12,16 @@ services:
       - ./server/config.ini:/config.ini
     networks:
       - testing_net
+  netcat:
+    container_name: netcat
+    build:
+      context: .
+      dockerfile: netcat/Dockerfile
+    entrypoint: sh netcat_echo.sh
+    depends_on:
+      - server
+    networks:
+      - testing_net
 
   client1:
     container_name: client1
