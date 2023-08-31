@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -52,7 +55,8 @@ func (c *Client) createClientSocket() error {
 func (c *Client) StartClientLoop() {
 	// autoincremental msgID to identify every message sent
 	msgID := 1
-
+	signalHandler := make(chan os.Signal, 1)
+	signal.Notify(signalHandler, syscall.SIGTERM)
 loop:
 	// Send messages if the loopLapse threshold has not been surpassed
 	for timeout := time.After(c.config.LoopLapse); ; {
@@ -61,6 +65,10 @@ loop:
 	        log.Infof("action: timeout_detected | result: success | client_id: %v",
                 c.config.ID,
             )
+			break loop
+		case signalReceived := <-signalHandler:
+			c.conn.Close()
+			log.Infof("action: graceful_exit | result: success | signal: %v", signalReceived.String())
 			break loop
 		default:
 		}
