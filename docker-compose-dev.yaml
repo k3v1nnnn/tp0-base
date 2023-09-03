@@ -30,6 +30,11 @@ services:
     environment:
       - CLI_ID=1
       - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name1
+      - CLI_LASTNAME=l_name1
+      - CLI_DOCUMENT=12341
+      - CLI_BIRTHDATE=1999-03-11
+      - CLI_NUMBER=98761
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:

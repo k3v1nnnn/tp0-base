@@ -57,6 +57,11 @@ for i in range(1, clients + 1):
     environment:
       - CLI_ID=""" + str(i) + """
       - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name""" + str(i) + """
+      - CLI_LASTNAME=l_name""" + str(i) + """
+      - CLI_DOCUMENT=1234""" + str(i) + """
+      - CLI_BIRTHDATE=1999-03-1""" + str(i) + """
+      - CLI_NUMBER=9876""" + str(i) + """
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:
