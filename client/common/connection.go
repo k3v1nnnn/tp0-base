@@ -19,11 +19,12 @@ func newConnection(id string, address string) *Connection{
 		id: id,
 		address: address,
 		protocol: "tcp",
+		confirmationLength: 1,
 	}
 	return connection
 }
 
-func (c *Connection) start() net.Conn {
+func (c *Connection) start() {
 	conn, err := net.Dial(c.protocol, c.address)
 	if err != nil {
 		log.Fatalf(
@@ -32,33 +33,32 @@ func (c *Connection) start() net.Conn {
 		)
 	}
 	c.conn = conn
-	return c.conn
 }
 
-func (c *Connection) send(bet *Bet) bool{
+func (c *Connection) sendBet(bet *Bet) bool{
 	message := NewMessage()
 	serializedMessage := message.serializeBet(bet)
-	read, err := c.conn.Write(serializedMessage)
+	write, err := c.conn.Write(serializedMessage)
 	if err != nil {
 		log.Fatalf(
-			"action: send | result: fail | client_id: %v | error: %v",
-			c.id, err,
-		)
+			"action: bet_sent | result: fail | dni: %v | numero: %v | error: %v",
+			bet.dni, bet.number, err)
 	}
-	return read == len(serializedMessage)
+	return write == len(serializedMessage)
 }
 
-func (c *Connection) read() (string, bool) {
+func (c *Connection) readConfirmation() bool {
 	message := NewMessage()
 	buffer := make([]byte, c.confirmationLength)
-	write, err := c.conn.Read(buffer)
+	read, err := c.conn.Read(buffer)
 	if err != nil {
 		log.Fatalf(
-			"action: read | result: fail | client_id: %v | error: %v",
+			"action: bet_sent | result: fail | client_id: %v | error: %v",
 			c.id, err,
 		)
 	}
-	return message.deserializeBetConfirmation(buffer), write == c.confirmationLength
+	confirmation:= message.deserializeBetConfirmation(buffer)
+	return confirmation == BetConfirmationMessage && read == len(buffer)
 }
 
 func (c *Connection) end() {

@@ -1,8 +1,6 @@
 package common
 
 import (
-	"bufio"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,7 +20,7 @@ type ClientConfig struct {
 // Client Entity that encapsulates how
 type Client struct {
 	config ClientConfig
-	conn   net.Conn
+	conn   *Connection
 	bet *Bet
 }
 
@@ -32,24 +30,13 @@ func NewClient(config ClientConfig, bet *Bet) *Client {
 	client := &Client{
 		config: config,
 		bet: bet,
+		conn: newConnection(config.ID, config.ServerAddress),
 	}
 	return client
 }
 
-// CreateClientSocket Initializes client socket. In case of
-// failure, error is printed in stdout/stderr and exit 1
-// is returned
-func (c *Client) createClientSocket() error {
-	cc := newConnection(c.config.ID, c.config.ServerAddress)
-	c.conn = cc.start()
-	cc.send(c.bet)
-	return nil
-}
-
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	// autoincremental msgID to identify every message sent
-	msgID := 1
 	signalHandler := make(chan os.Signal, 1)
 	signal.Notify(signalHandler, syscall.SIGTERM)
 loop:
@@ -62,36 +49,26 @@ loop:
             )
 			break loop
 		case signalReceived := <-signalHandler:
-			c.conn.Close()
+			c.conn.end()
 			log.Infof("action: graceful_exit | result: success | signal: %v", signalReceived.String())
 			break loop
 		default:
 		}
 
-		// Create the connection the server in every loop iteration. Send an
-		c.createClientSocket()
-
-		// TODO: Modify the send to avoid short-write
-
-		msg, err := bufio.NewReader(c.conn).ReadString('\n')
-		msgID++
-		c.conn.Close()
-
-		if err != nil {
-			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-                c.config.ID,
-				err,
-			)
-			return
+		c.conn.start()
+		wasBetSent := c.conn.sendBet(c.bet)
+		if wasBetSent {
+			log.Infof("action: bet_sent | result: in_progress | dni: %v | numero: %v",
+				c.bet.dni, c.bet.number)
 		}
-		log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
-            c.config.ID,
-            msg,
-        )
-
-		// Wait a time between sending one message and the next one
+		wasBetConfirm := c.conn.readConfirmation()
+		if wasBetConfirm {
+			log.Infof("action: bet_sent | result: success | dni: %v | numero: %v",
+				c.bet.dni, c.bet.number)
+			c.conn.end()
+			break loop
+		}
 		time.Sleep(c.config.LoopPeriod)
 	}
-
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 }

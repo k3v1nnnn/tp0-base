@@ -40,3 +40,26 @@ Forma de ejecutarlo
   - `make docker-compose-logs`
   - se observan `exited with code 0` en el cliente y servidor
 
+## Ejercicio 5
+
+Separamos un poco las responsabilidades, Ahora Tenemos clases como Conexion , Mensaje y Apuesta
+
+### Procolo
+- Para la comunicacion usamos TCP
+- El tamano del mensaje es fijo de unos 80 bytes
+- Se completa con el caracter **@** en el caso de faltar caracteres
+- La serializacion de la apuesta es la union de todos sus datos mediante el caracter
+**\#** como ejemplo tenemos **{agencia}#{nombre}#{apellido}#{fecha de nacimeinto}#{documento}#{numero}**
+- El mensaje que finalmente envia el cliente es la union de **b#** (bet) y la serializacion
+- El servidor utiliza **b#** para reconocer a la apuesta
+- El servidor response con **a** cuando se almacena una apuesta en otros
+casos responde con el mismo mensaje que le llego
+### Ejecucion
+
+- Terminal 1
+  - `make docker-compose-up CLIENTS=5 `
+  - esperamos un momento, revisando la **Terminal 2**
+- Terminal 2
+  - `make docker-compose-logs`
+  - se observan los mensajes que intercambian todos los servicios
+

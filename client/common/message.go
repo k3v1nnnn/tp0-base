@@ -2,6 +2,8 @@ package common
 
 import "strings"
 
+const BetConfirmationMessage = "a"
+
 type Message struct {
 	separator string
 	maxLength int
@@ -11,7 +13,7 @@ type Message struct {
 func NewMessage() *Message {
 	message := &Message{
 		separator: "#",
-		maxLength: 80,//bytes
+		maxLength: 80, //bytes
 		filler: "@",
 	}
 	return message
@@ -19,7 +21,7 @@ func NewMessage() *Message {
 
 func (c *Message) serializeBet(bet *Bet) []byte {
 	_info := bet.information()
-	info := strings.Join(_info, c.separator)
+	info := "b" + c.separator + strings.Join(_info, c.separator)
 	missingBytes := c.maxLength - len(info)
 	if missingBytes < 0 {
 		info = ""

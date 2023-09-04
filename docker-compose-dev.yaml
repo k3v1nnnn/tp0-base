@@ -34,7 +34,7 @@ services:
       - CLI_LASTNAME=l_name1
       - CLI_DOCUMENT=12341
       - CLI_BIRTHDATE=1999-03-11
-      - CLI_NUMBER=98761
+      - CLI_NUMBER=7571
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:

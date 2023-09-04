@@ -61,7 +61,7 @@ for i in range(1, clients + 1):
       - CLI_LASTNAME=l_name""" + str(i) + """
       - CLI_DOCUMENT=1234""" + str(i) + """
       - CLI_BIRTHDATE=1999-03-1""" + str(i) + """
-      - CLI_NUMBER=9876""" + str(i) + """
+      - CLI_NUMBER=757""" + str(i) + """
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:
