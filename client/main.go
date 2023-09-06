@@ -40,6 +40,8 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("document")
 	v.BindEnv("birthdate")
 	v.BindEnv("number")
+	v.BindEnv("filepath")
+	v.BindEnv("batch", "size")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -105,11 +107,19 @@ func main() {
 	// Print program config with debugging purposes
 	PrintConfig(v)
 
+	currentBatchSize := v.GetInt("batch.size")
+	if (currentBatchSize * common.BetMaxLength) > 8000 {
+		currentBatchSize = 114
+		logrus.Infof("action: config_batch_size_default | result: success")
+	}
+
 	clientConfig := common.ClientConfig{
 		ServerAddress: v.GetString("server.address"),
 		ID:            v.GetString("id"),
 		LoopLapse:     v.GetDuration("loop.lapse"),
 		LoopPeriod:    v.GetDuration("loop.period"),
+		FilePath: v.GetString("filepath"),
+		BatchSize: currentBatchSize,
 	}
 
 	bet := common.NewBet(v.GetString("id"),v.GetString("firstname"),

@@ -47,6 +47,30 @@ func (c *Connection) sendBet(bet *Bet) bool{
 	return write == len(serializedMessage)
 }
 
+func (c *Connection) sendBetBatch(bets []Bet, last bool, maxBatchSize int) bool{
+	message := NewMessage()
+	serializedMessage := message.serializeBets(bets, last, maxBatchSize)
+	write, err := c.conn.Write(serializedMessage)
+	if err != nil {
+		log.Fatalf(
+			"action: bet_batch_sent | result: fail | amount: %v | error: %v",
+			len(bets), err)
+	}
+	return write == len(serializedMessage)
+}
+
+func (c *Connection) sendConfig(maxBatchSize int) bool{
+	message := NewMessage()
+	serializedMessage := message.serializeConfig(maxBatchSize)
+	write, err := c.conn.Write(serializedMessage)
+	if err != nil {
+		log.Fatalf(
+			"action: config_sent | result: fail | error: %v",
+			err)
+	}
+	return write == len(serializedMessage)
+}
+
 func (c *Connection) readConfirmation() bool {
 	message := NewMessage()
 	buffer := make([]byte, c.confirmationLength)

@@ -62,8 +62,10 @@ for i in range(1, clients + 1):
       - CLI_DOCUMENT=1234""" + str(i) + """
       - CLI_BIRTHDATE=1999-03-1""" + str(i) + """
       - CLI_NUMBER=757""" + str(i) + """
+      - CLI_FILEPATH=./agency-""" + str(i) + """.csv
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-""" + str(i) + """.csv:/agency-""" + str(i) + """.csv
     networks:
       - testing_net
     depends_on:

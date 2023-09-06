@@ -27,15 +27,33 @@ class Connection:
         logging.info(f'action: handler_connection | result: success | ip: {addr[0]}')
 
     def _handle_connection(self, conn, addr):
+        batch_size = 0
         try:
+            buffer = conn.recv(Message.CONFIG_MAX_LENGTH)
+            message = Message(buffer)
+            confirmation = message.serialize_confirmation()
+            conn.send(confirmation)
+            if message.is_config:
+                batch_size = message.deserialize_config()
+            else:
+                conn.close()
+                return
             logging.info(f'action: receive_message | result: in_progress | ip: {addr[0]}')
-            buffer = conn.recv(Message.MAX_LENGTH)
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]}')
+            buffer = conn.recv(batch_size * 8000)
             message = Message(buffer)
             if message.is_bet:
-                bet = message.deserialize_bet()
-                store_bets([bet])
-                logging.info(f'action: stored_bet | result: success | dni: {bet.document} | number: {bet.number}')
+                bets = message.deserialize_bets_batch()
+                store_bets(bets)
+                confirmation = message.serialize_confirmation()
+                conn.send(confirmation)
+                while not message.is_last:
+                    buffer = conn.recv(batch_size * 8000)
+                    message = Message(buffer)
+                    bets = message.deserialize_bets_batch()
+                    store_bets(bets)
+                    confirmation = message.serialize_confirmation()
+                    conn.send(confirmation)
+                logging.info(f'action: stored_bet | result: success')
             confirmation = message.serialize_confirmation()
             conn.send(confirmation)
         except OSError as e:

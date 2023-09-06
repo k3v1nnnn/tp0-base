@@ -35,8 +35,10 @@ services:
       - CLI_DOCUMENT=12341
       - CLI_BIRTHDATE=1999-03-11
       - CLI_NUMBER=7571
+      - CLI_FILEPATH=./agency-1.csv
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-1.csv:/agency-1.csv
     networks:
       - testing_net
     depends_on:
