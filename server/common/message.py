@@ -5,7 +5,7 @@ from .utils import Bet
 
 class Message:
     MAX_LENGTH = 70  # bytes
-    CONFIG_MAX_LENGTH = 6
+    CONFIG_MAX_LENGTH = 8
 
     def __init__(self, buffer):
         self._bet_separator = ","
@@ -31,10 +31,9 @@ class Message:
         info = _bet.split(self._separator)
         return Bet(info[0], info[1], info[2], info[3], info[4], info[5])
 
-    def deserialize_config(self) -> int:
+    def deserialize_config(self) -> [int, int]:
         info = self._message.split(self._separator)
-        return int(info[1])
-
+        return int(info[1]), int(info[2])
 
     def deserialize_bet(self) -> Bet:
         info = self._message.split(self._separator)

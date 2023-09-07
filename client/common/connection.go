@@ -59,9 +59,9 @@ func (c *Connection) sendBetBatch(bets []Bet, last bool, maxBatchSize int) bool{
 	return write == len(serializedMessage)
 }
 
-func (c *Connection) sendConfig(maxBatchSize int) bool{
+func (c *Connection) sendConfig(maxBatchSize int, id string) bool{
 	message := NewMessage()
-	serializedMessage := message.serializeConfig(maxBatchSize)
+	serializedMessage := message.serializeConfig(maxBatchSize, id)
 	write, err := c.conn.Write(serializedMessage)
 	if err != nil {
 		log.Fatalf(

@@ -63,7 +63,7 @@ loop:
 		c.conn.start()
 
 		// Send Config
-		wasConfigSent := c.conn.sendConfig(c.config.BatchSize)
+		wasConfigSent := c.conn.sendConfig(c.config.BatchSize, c.config.ID)
 		if !wasConfigSent {
 			log.Fatalf("action: config_sent | result: fail")
 			c.conn.end()

@@ -8,7 +8,7 @@ import (
 
 const BetConfirmationMessage = "a"
 const BetMaxLength = 70
-const ConfigMaxLength = 6
+const ConfigMaxLength = 8
 
 type Message struct {
 	betSeparator string
@@ -43,8 +43,8 @@ func (c *Message) deserializeBetConfirmation(buffer []byte) string {
 	return string(buffer)
 }
 
-func (c *Message) serializeConfig(batchSize int) []byte {
-	info := fmt.Sprintf("bi#%d", batchSize)
+func (c *Message) serializeConfig(batchSize int, id string) []byte {
+	info := fmt.Sprintf("bi#%d#%v", batchSize, id)
 	missingBytes := ConfigMaxLength - len(info)
 	info = info + strings.Repeat(c.filler, missingBytes)
 	return []byte(info)
