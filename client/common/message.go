@@ -15,10 +15,12 @@ type Message struct {
 	separator string
 	maxLength int
 	filler string
+	end string
 }
 
 func NewMessage() *Message {
 	message := &Message{
+		end: "|",
 		betSeparator: ",",
 		separator: "#",
 		maxLength: BetMaxLength, //bytes
@@ -55,14 +57,13 @@ func (c *Message) serializeBets(bets []Bet, last bool, batchSize int) []byte {
 	for _, bet := range bets {
 		_bet := bet.information()
 		_betJoin := strings.Join(_bet, c.separator)
-		_betJoin = strings.Replace(_betJoin, " ", "_", -1)
 		_info = append(_info, _betJoin)
 	}
 	lastBetBatch := "bc"
 	if last {
 		lastBetBatch = "bf"
 	}
-	info := lastBetBatch + c.separator + strings.Join(_info, c.betSeparator)
+	info := lastBetBatch + c.separator + strings.Join(_info, c.betSeparator) + c.end
 	missingBytes := (batchSize * c.maxLength) - len(info)
 	if missingBytes < 0 {
 		log.Infof("action: bet_sent | result: in_progress | amount: %v | bytes: %v",

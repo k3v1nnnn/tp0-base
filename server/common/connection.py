@@ -1,29 +1,48 @@
 import logging
 import socket
+import threading
 
 from .message import Message
 from .utils import store_bets
 
 
 class Connection:
+    LOCK = threading.Lock()
+
     def __init__(self, port, listen_backlog, lottery):
         self._port = port
         self._max_connections = listen_backlog
         self._lottery = lottery
         self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._threads = []
 
     def start(self):
         self._connection.bind(('', self._port))
         self._connection.listen(self._max_connections)
 
     def end(self):
+        for thread in self._threads:
+            thread.join()
         self._connection.close()
 
     def accept(self):
         logging.info("action: accept_connections | result: in_progress")
         conn, addr = self._connection.accept()
-        self._handle_connection(conn, addr)
+        thread = threading.Thread(target=self._handle_connection, args=(conn, addr))
+        thread.start()
+        self._threads.append(thread)
         logging.info(f'action: handler_connection | result: success | ip: {addr[0]}')
+
+    def _send_bets(self, conn, batch_size):
+        buffer = conn.recv(batch_size * Message.MAX_LENGTH)
+        message = Message(buffer)
+        bets = message.deserialize_bets_batch()
+        Connection.LOCK.acquire()
+        store_bets(bets)
+        Connection.LOCK.release()
+        confirmation = message.serialize_confirmation()
+        conn.send(confirmation)
+        return message
 
     def _handle_connection(self, conn, addr):
         try:
@@ -48,20 +67,10 @@ class Connection:
                 conn.close()
                 return
             logging.info(f'action: receive_message | result: in_progress | ip: {addr[0]}')
-            buffer = conn.recv(batch_size * 8000)
-            message = Message(buffer)
-            bets = message.deserialize_bets_batch()
-            store_bets(bets)
-            confirmation = message.serialize_confirmation()
-            conn.send(confirmation)
+            message = self._send_bets(conn, batch_size)
             while not message.is_last:
-                buffer = conn.recv(batch_size * 8000)
-                message = Message(buffer)
-                bets = message.deserialize_bets_batch()
-                store_bets(bets)
-                confirmation = message.serialize_confirmation()
-                conn.send(confirmation)
-            logging.info(f'action: stored_bet | result: success')
+                message = self._send_bets(conn, batch_size)
+            logging.info(f'action: stored_bet | result: success | client_id: {client_id}')
             self._lottery.add_finalized_agency(client_id)
         except OSError as e:
             logging.error(f'action: receive_message | result: fail | error: {e.strerror}')

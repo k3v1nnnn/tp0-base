@@ -18,6 +18,7 @@ class Message:
         self._separator = "#"
         self._filler = "@"
         self._message = ""
+        self.end = "|"
         self._transform(buffer)
 
     def _transform(self, buffer):
@@ -42,9 +43,13 @@ class Message:
         return Bet(info[1], info[2], info[3], info[4], info[5], info[6])
 
     def deserialize_bets_batch(self) -> list[Bet]:
+        self._message = (self._message.split(self.end))[0]
         self._message = self._message[3:]
-        bets = self._message.split(self._bet_separator)
-        return [*map(self._deserialize_bet, bets)]
+        _bets = self._message.split(self._bet_separator)
+        bets = []
+        for _bet in _bets:
+            bets.append(self._deserialize_bet(_bet))
+        return bets
 
     def serialize_confirmation(self):
         if self.is_bet:

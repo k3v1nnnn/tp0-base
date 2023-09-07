@@ -95,7 +95,7 @@ loop:
 						log.Fatalf("action: bet_batch_confirm | result: fail | bytes: %v",
 							len(bets))
 					}
-					bets = []Bet{}
+					bets = []Bet{c.file.getBet(c.config.ID, line)}
 				}
 			} else {
 				break
