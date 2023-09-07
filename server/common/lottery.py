@@ -21,7 +21,7 @@ class Lottery:
         return True
 
     def get_winners(self, agency):
-        return self._winners.get(agency, 0)
+        return self._winners.get(agency, [])
 
     def has_winners(self):
         return len(self._winners) != 0
@@ -30,8 +30,8 @@ class Lottery:
         bets = load_bets()
         for bet in bets:
             if has_won(bet):
-                count = self._winners.get(bet.agency, 0)
-                if count:
-                    self._winners[bet.agency] = count + 1
+                documents = self._winners.get(bet.agency, [])
+                if documents:
+                    self._winners[bet.agency].append(bet.document)
                 else:
-                    self._winners[bet.agency] = 1
+                    self._winners[bet.agency] = [bet.document]

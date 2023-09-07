@@ -128,7 +128,7 @@ loop:
 			if !hasResponse {
 				log.Fatalf("action: winner_response | result: fail")
 			}
-			if winners != "" {
+			if winners >= 0 {
 				log.Infof("action: request_winners | result: success | amount_winners: %v",
 					winners)
 				c.conn.end()

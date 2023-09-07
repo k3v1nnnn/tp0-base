@@ -82,12 +82,15 @@ func (c *Message) serializeRequest(id string) []byte {
 	return []byte(info)
 }
 
-func (c *Message) deserializeResponse(buffer []byte) string {
+func (c *Message) deserializeResponse(buffer []byte) int {
 	_info := string(buffer)
 	_info = strings.Replace(_info, c.filler, "", -1)
 	info := strings.Split(_info, c.separator)
 	if info[0] == "w" {
-		return info[1]
+		if info[1] != "" {
+			return len(strings.Split(info[1], c.betSeparator))
+		}
+		return 0
 	}
-	return ""
+	return -1
 }

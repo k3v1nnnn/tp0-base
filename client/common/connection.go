@@ -21,7 +21,7 @@ func newConnection(id string, address string) *Connection{
 		address: address,
 		protocol: "tcp",
 		confirmationLength: 1,
-		responseLength:8,
+		responseLength:70,
 	}
 	return connection
 }
@@ -109,7 +109,7 @@ func (c *Connection) sendRequest(id string) bool {
 	return write == len(serializedMessage)
 }
 
-func (c *Connection) readResponse() (bool, string) {
+func (c *Connection) readResponse() (bool, int) {
 	message := NewMessage()
 	buffer := make([]byte, c.responseLength)
 	read, err := c.conn.Read(buffer)

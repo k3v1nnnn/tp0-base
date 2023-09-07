@@ -6,6 +6,7 @@ from .utils import Bet
 class Message:
     MAX_LENGTH = 70  # bytes
     CONFIG_MAX_LENGTH = 8
+    RESPONSE_MAX_LENGTH = 70
 
     def __init__(self, buffer):
         self._bet_separator = ","
@@ -60,14 +61,14 @@ class Message:
         self._message = self._message[3:]
         return int(self._message)
 
-    def serialize_winners_response(self, amount_winners):
-        response = "w#" + str(amount_winners)
-        missing_bytes = Message.CONFIG_MAX_LENGTH - len(response)
+    def serialize_winners_response(self, document_winners):
+        response = "w#" + ",".join(document_winners)
+        missing_bytes = Message.RESPONSE_MAX_LENGTH - len(response)
         response = response + (self._filler * missing_bytes)
         return response.encode('utf-8')
 
     def serialize_empty_response(self):
         response = "r#"
-        missing_bytes = Message.CONFIG_MAX_LENGTH - len(response)
+        missing_bytes = Message.RESPONSE_MAX_LENGTH - len(response)
         response = response + (self._filler * missing_bytes)
         return response.encode('utf-8')

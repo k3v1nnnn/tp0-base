@@ -56,8 +56,8 @@ class Connection:
                 response = message.serialize_empty_response()
                 if self._lottery.has_winners():
                     agency = message.deserialize_request()
-                    amount_winners = self._lottery.get_winners(agency)
-                    response = message.serialize_winners_response(amount_winners)
+                    document_winners = self._lottery.get_winners(agency)
+                    response = message.serialize_winners_response(document_winners)
                 conn.send(response)
                 conn.close()
                 return
