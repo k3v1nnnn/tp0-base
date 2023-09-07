@@ -110,12 +110,37 @@ loop:
 		}
 		c.file.Close()
 		wasBetConfirm := c.conn.readConfirmation()
-		if wasBetConfirm {
-			log.Infof("action: bet_sent | result: success")
-			c.conn.end()
-			break loop
+		if !wasBetConfirm {
+			log.Fatalf("action: bet_batch_confirm | result: fail | bytes: %v",
+				len(bets))
 		}
-		time.Sleep(c.config.LoopPeriod)
+		log.Infof("action: bet_sent | result: success")
+		c.conn.end()
+		//Winners Request
+		attempt := 1
+		for {
+			c.conn.start()
+			wasRequestSent := c.conn.sendRequest(c.config.ID)
+			if !wasRequestSent {
+				log.Fatalf("action: winner_request_sent | result: fail")
+			}
+			hasResponse, winners := c.conn.readResponse()
+			if !hasResponse {
+				log.Fatalf("action: winner_response | result: fail")
+			}
+			if winners != "" {
+				log.Infof("action: request_winners | result: success | amount_winners: %v",
+					winners)
+				c.conn.end()
+				break
+			}
+			c.conn.end()
+			log.Infof("action: request_winners | result: in_progress | sleep: %v",
+				attempt)
+			time.Sleep(c.config.LoopPeriod)
+			attempt = attempt + 1
+		}
+		break loop
 	}
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 }

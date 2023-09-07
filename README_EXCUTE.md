@@ -92,4 +92,37 @@ Agremos clase para Archivo para poder leer y parsear el archivo
   - se observan los mensajes que intercambian todos los servicios
 
 
+## Ejercicio 7
+
+Agremos clase Loteria para manejar/contar los ganadores
+
+### Procolo
+- Para la comunicacion usamos TCP
+- El tamano de cada apuesta es fijo de unos 70 bytes
+- El tamano del mensaje es fijo pero depende del tamano del batch, lo calculamos como
+  (tamano del batch * 70)
+- Se completa con el caracter **@** en el caso de faltar caracteres
+- La serializacion de la apuesta es la union de todos sus datos mediante el caracter
+  **\#** como ejemplo tenemos **{agencia}#{nombre}#{apellido}#{fecha de nacimeinto}#{documento}#{numero}**
+- El mensaje que finalmente envia el cliente es la union de **b\*#** (bet + tipo de evento) y la serializacion
+- El servidor utiliza **b\*#** para reconocer a las apuestas y saber cuando finalizo
+  - **bi#** initial , nos sirve para saber el tamano de batch
+  - **bc#** continue , nos sirve para saber que seguimos esperamo apuestas
+  - **bf#** final , nos sirve para saber que son las ultimas apuestas
+  - **br#** request, nos sirve para saber que el cliente pide los resultados de las apuesta
+- El servidor response con **a** (accept) cuando se almacena una apuesta o saber que recibio el mensaje. En otros
+  casos responde con el mismo mensaje que le llego
+- El servidor responde a las consultas de los resultados de las apuestas con **\*#**
+  - **r#** retry, nos sirve para que el cliente espere un rato y vuelva a consultar despues
+  - **w#** winner, nos sirve para que el cliente obtenga la cantidad de ganadores
+### Ejecucion
+
+- Asegurarse que se tiene descomprimido el archivo dataset.zip en **.data/dataset/archivos.csv**
+- Terminal 1
+  - `make docker-compose-up CLIENTS=5 `
+  - esperamos un momento, revisando la **Terminal 2**
+- Terminal 2
+  - `make docker-compose-logs`
+  - se observan los mensajes que intercambian todos los servicios
+
 

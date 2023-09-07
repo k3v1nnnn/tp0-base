@@ -73,3 +73,20 @@ func (c *Message) serializeBets(bets []Bet, last bool, batchSize int) []byte {
 	}
 	return []byte(info)
 }
+
+func (c *Message) serializeRequest(id string) []byte {
+	info := fmt.Sprintf("br#%v", id)
+	missingBytes := ConfigMaxLength - len(info)
+	info = info + strings.Repeat(c.filler, missingBytes)
+	return []byte(info)
+}
+
+func (c *Message) deserializeResponse(buffer []byte) string {
+	_info := string(buffer)
+	_info = strings.Replace(_info, c.filler, "", -1)
+	info := strings.Split(_info, c.separator)
+	if info[0] == "w" {
+		return info[1]
+	}
+	return ""
+}

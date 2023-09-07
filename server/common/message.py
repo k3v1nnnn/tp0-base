@@ -14,6 +14,7 @@ class Message:
         self.is_bet = False
         self.is_last = False
         self.is_config = False
+        self.is_request = False
         self._separator = "#"
         self._filler = "@"
         self._message = ""
@@ -25,6 +26,7 @@ class Message:
         self.is_bet = message[0:3] in self._bet_message_type
         self.is_last = message[0:3] == "bf#"
         self.is_config = message[0:3] == "bi#"
+        self.is_request = message[0:3] == "br#"
         self._message = message
 
     def _deserialize_bet(self, _bet) -> Bet:
@@ -48,3 +50,19 @@ class Message:
         if self.is_bet:
             return self._bet_confirmation.encode('utf-8')
         return self._message.encode('utf-8')
+
+    def deserialize_request(self):
+        self._message = self._message[3:]
+        return int(self._message)
+
+    def serialize_winners_response(self, amount_winners):
+        response = "w#" + str(amount_winners)
+        missing_bytes = Message.CONFIG_MAX_LENGTH - len(response)
+        response = response + (self._filler * missing_bytes)
+        return response.encode('utf-8')
+
+    def serialize_empty_response(self):
+        response = "r#"
+        missing_bytes = Message.CONFIG_MAX_LENGTH - len(response)
+        response = response + (self._filler * missing_bytes)
+        return response.encode('utf-8')

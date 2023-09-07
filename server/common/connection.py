@@ -22,8 +22,6 @@ class Connection:
     def accept(self):
         logging.info("action: accept_connections | result: in_progress")
         conn, addr = self._connection.accept()
-        logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
-        logging.info(f'action: handler_connection | result: in_progress | ip: {addr[0]}')
         self._handle_connection(conn, addr)
         logging.info(f'action: handler_connection | result: success | ip: {addr[0]}')
 
@@ -31,11 +29,22 @@ class Connection:
         try:
             buffer = conn.recv(Message.CONFIG_MAX_LENGTH)
             message = Message(buffer)
-            confirmation = message.serialize_confirmation()
-            conn.send(confirmation)
             if message.is_config:
+                confirmation = message.serialize_confirmation()
+                conn.send(confirmation)
                 batch_size, client_id = message.deserialize_config()
+            elif message.is_request:
+                response = message.serialize_empty_response()
+                if self._lottery.has_winners():
+                    agency = message.deserialize_request()
+                    amount_winners = self._lottery.get_winners(agency)
+                    response = message.serialize_winners_response(amount_winners)
+                conn.send(response)
+                conn.close()
+                return
             else:
+                confirmation = message.serialize_confirmation()
+                conn.send(confirmation)
                 conn.close()
                 return
             logging.info(f'action: receive_message | result: in_progress | ip: {addr[0]}')

@@ -12,6 +12,7 @@ type Connection struct {
 	protocol string
 	confirmationLength int
 	conn  net.Conn
+	responseLength int
 }
 
 func newConnection(id string, address string) *Connection{
@@ -20,6 +21,7 @@ func newConnection(id string, address string) *Connection{
 		address: address,
 		protocol: "tcp",
 		confirmationLength: 1,
+		responseLength:8,
 	}
 	return connection
 }
@@ -93,4 +95,29 @@ func (c *Connection) end() {
 			c.id, err,
 		)
 	}
+}
+
+func (c *Connection) sendRequest(id string) bool {
+	message := NewMessage()
+	serializedMessage := message.serializeRequest(id)
+	write, err := c.conn.Write(serializedMessage)
+	if err != nil {
+		log.Fatalf(
+			"action: request_sent | result: fail | error: %v",
+			err)
+	}
+	return write == len(serializedMessage)
+}
+
+func (c *Connection) readResponse() (bool, string) {
+	message := NewMessage()
+	buffer := make([]byte, c.responseLength)
+	read, err := c.conn.Read(buffer)
+	if err != nil {
+		log.Fatalf(
+			"action: response_read | result: fail | client_id: %v | error: %v",
+			c.id, err,
+		)
+	}
+	return read == len(buffer), message.deserializeResponse(buffer)
 }

@@ -44,6 +44,90 @@ services:
     depends_on:
       - server
 
+  client2:
+    container_name: client2
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=2
+      - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name2
+      - CLI_LASTNAME=l_name2
+      - CLI_DOCUMENT=12342
+      - CLI_BIRTHDATE=1999-03-12
+      - CLI_NUMBER=7572
+      - CLI_FILEPATH=./agency-2.csv
+    volumes:
+      - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-2.csv:/agency-2.csv
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client3:
+    container_name: client3
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=3
+      - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name3
+      - CLI_LASTNAME=l_name3
+      - CLI_DOCUMENT=12343
+      - CLI_BIRTHDATE=1999-03-13
+      - CLI_NUMBER=7573
+      - CLI_FILEPATH=./agency-3.csv
+    volumes:
+      - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-3.csv:/agency-3.csv
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client4:
+    container_name: client4
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=4
+      - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name4
+      - CLI_LASTNAME=l_name4
+      - CLI_DOCUMENT=12344
+      - CLI_BIRTHDATE=1999-03-14
+      - CLI_NUMBER=7574
+      - CLI_FILEPATH=./agency-4.csv
+    volumes:
+      - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-4.csv:/agency-4.csv
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client5:
+    container_name: client5
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=5
+      - CLI_LOG_LEVEL=DEBUG
+      - CLI_FIRSTNAME=name5
+      - CLI_LASTNAME=l_name5
+      - CLI_DOCUMENT=12345
+      - CLI_BIRTHDATE=1999-03-15
+      - CLI_NUMBER=7575
+      - CLI_FILEPATH=./agency-5.csv
+    volumes:
+      - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-5.csv:/agency-5.csv
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
 networks:
   testing_net:
     ipam:

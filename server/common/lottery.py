@@ -24,7 +24,7 @@ class Lottery:
         return self._winners.get(agency, 0)
 
     def has_winners(self):
-        return self._winners != 0
+        return len(self._winners) != 0
 
     def start(self):
         bets = load_bets()
