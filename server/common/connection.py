@@ -44,34 +44,43 @@ class Connection:
         conn.send(confirmation)
         return message
 
+    def _handle_config(self, message, conn, addr):
+        confirmation = message.serialize_confirmation()
+        conn.send(confirmation)
+        batch_size, client_id = message.deserialize_config()
+        logging.info(f'action: receive_message | result: in_progress | ip: {addr[0]}')
+        message = self._send_bets(conn, batch_size)
+        while not message.is_last:
+            message = self._send_bets(conn, batch_size)
+        logging.info(f'action: stored_bet | result: success | client_id: {client_id}')
+        Connection.LOCK.acquire()
+        self._lottery.add_finalized_agency(client_id)
+        Connection.LOCK.release()
+
+    def _handle_request(self, message, conn):
+        response = message.serialize_empty_response()
+        if self._lottery.has_winners():
+            agency = message.deserialize_request()
+            document_winners = self._lottery.get_winners(agency)
+            response = message.serialize_winners_response(document_winners)
+        conn.send(response)
+        conn.close()
+
+    def _handle_confirm(self, message, conn):
+        confirmation = message.serialize_confirmation()
+        conn.send(confirmation)
+        conn.close()
+
     def _handle_connection(self, conn, addr):
         try:
             buffer = conn.recv(Message.CONFIG_MAX_LENGTH)
             message = Message(buffer)
             if message.is_config:
-                confirmation = message.serialize_confirmation()
-                conn.send(confirmation)
-                batch_size, client_id = message.deserialize_config()
+                self._handle_config(message, conn, addr)
             elif message.is_request:
-                response = message.serialize_empty_response()
-                if self._lottery.has_winners():
-                    agency = message.deserialize_request()
-                    document_winners = self._lottery.get_winners(agency)
-                    response = message.serialize_winners_response(document_winners)
-                conn.send(response)
-                conn.close()
-                return
+                self._handle_request(message, conn)
             else:
-                confirmation = message.serialize_confirmation()
-                conn.send(confirmation)
-                conn.close()
-                return
-            logging.info(f'action: receive_message | result: in_progress | ip: {addr[0]}')
-            message = self._send_bets(conn, batch_size)
-            while not message.is_last:
-                message = self._send_bets(conn, batch_size)
-            logging.info(f'action: stored_bet | result: success | client_id: {client_id}')
-            self._lottery.add_finalized_agency(client_id)
+                self._handle_confirm(message, conn)
         except OSError as e:
             logging.error(f'action: receive_message | result: fail | error: {e.strerror}')
         finally:

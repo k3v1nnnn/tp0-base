@@ -8,9 +8,6 @@ class Lottery:
         self._finalized_agencies = []
         self._winners = {}
 
-    def add_agency(self, agency):
-        self._agencies.append(agency)
-
     def add_finalized_agency(self, agency):
         self._finalized_agencies.append(agency)
 
