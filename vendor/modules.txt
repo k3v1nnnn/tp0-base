@@ -1,3 +1,5 @@
+# github.com/davecgh/go-spew v1.1.1
+## explicit
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit; go 1.13
 github.com/fsnotify/fsnotify
@@ -25,7 +27,9 @@ github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/sirupsen/logrus v1.8.1
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+# github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.6.0
@@ -44,10 +48,12 @@ github.com/spf13/pflag
 # github.com/spf13/viper v1.8.1
 ## explicit; go 1.12
 github.com/spf13/viper
+# github.com/stretchr/testify v1.7.0
+## explicit; go 1.13
 # github.com/subosito/gotenv v1.2.0
 ## explicit
 github.com/subosito/gotenv
-# golang.org/x/sys v0.0.0-20210510120138-977fb7262007
+# golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -62,3 +68,5 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
