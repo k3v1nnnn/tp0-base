@@ -1,3 +1,12 @@
+# SOLUCION EJ1
+Se implementó un script en Python3 (`yaml_generator.py`) que recibe como parámetros el nombre del archivo de salida y la cantidad de clientes, y genera el archivo `docker-compose-dev.yaml` modificado con los contenedores `client1`, `client2`, etc.
+
+## Para ejecutarlo:
+
+```bash
+./generar-compose.sh docker-compose-dev.yaml 2
+```
+
 # TP0: Docker + Comunicaciones + Concurrencia
 
 En el presente repositorio se provee un esqueleto básico de cliente/servidor, en donde todas las dependencias del mismo se encuentran encapsuladas en containers. Los alumnos deberán resolver una guía de ejercicios incrementales, teniendo en cuenta las condiciones de entrega descritas al final de este enunciado.
