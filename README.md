@@ -1,11 +1,5 @@
-# SOLUCION EJ2
-Se modifico los archivos `yaml_generator.py` y `docker-compose-dev.yaml`, se agrego la configuracion `volumes:` que permite levantar los archivos de configuracion desde el host, asi vamos a poder modificarlos y no tener que reconstruir el contenedor para aplicar esos cambios.
-
-## Cliente
-Retiramos el `COPY` y agregamos el `volumes:`
-
-## Servidor
-Como hace el `COPY` de toda la carpeta se agrego un `.dockerignore` que nos ayuda a ignorar solo el archivo de configuracion y agregamos el `volumes:`
+# SOLUCION EJ3
+Agregamos el archivo `validar-echo-server.sh` que permite ejecutar un comando para levantar un contenedor a apartir de una imagen muy chica `busybox` que ya contiene `netcat`, este contenedor solo se va a comunicar con el server para luego ser eliminado esto lo hacemos con los flags `--rm` y `--network`
 
 ## Para ejecutarlo:
 
@@ -13,6 +7,8 @@ Como hace el `COPY` de toda la carpeta se agrego un `.dockerignore` que nos ayud
 ./generar-compose.sh docker-compose-dev.yaml 2
 
 make docker-compose-up
+
+./validar-echo-server.sh
 ```
 
 # TP0: Docker + Comunicaciones + Concurrencia
