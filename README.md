@@ -1,10 +1,18 @@
-# SOLUCION EJ1
-Se implementó un script en Python3 (`yaml_generator.py`) que recibe como parámetros el nombre del archivo de salida y la cantidad de clientes, y genera el archivo `docker-compose-dev.yaml` modificado con los contenedores `client1`, `client2`, etc.
+# SOLUCION EJ2
+Se modifico los archivos `yaml_generator.py` y `docker-compose-dev.yaml`, se agrego la configuracion `volumes:` que permite levantar los archivos de configuracion desde el host, asi vamos a poder modificarlos y no tener que reconstruir el contenedor para aplicar esos cambios.
+
+## Cliente
+Retiramos el `COPY` y agregamos el `volumes:`
+
+## Servidor
+Como hace el `COPY` de toda la carpeta se agrego un `.dockerignore` que nos ayuda a ignorar solo el archivo de configuracion y agregamos el `volumes:`
 
 ## Para ejecutarlo:
 
 ```bash
 ./generar-compose.sh docker-compose-dev.yaml 2
+
+make docker-compose-up
 ```
 
 # TP0: Docker + Comunicaciones + Concurrencia
