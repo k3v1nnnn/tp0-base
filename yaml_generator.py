@@ -45,7 +45,7 @@ def main():
     if len(sys.argv) == 3:
         file = sys.argv[1]
         n_clients = int(sys.argv[2])
-        if n_clients > 0:
+        if n_clients >= 0:
             yaml_file = yaml(n_clients)
             with open(file, "w") as f:
                 f.write(yaml_file)
