@@ -20,7 +20,7 @@ class Server:
 
     def __handle_sigterm(self, *_):
         logging.info("action: receive_sigterm | result: success")
-        self._running = False
+        self._server_running = False
         self.__safe_server_socket_close()
 
     def run(self):
