@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 	"time"
-	"syscall"
-	"os/signal"
 
 	"github.com/op/go-logging"
 )
@@ -39,38 +37,37 @@ func NewClient(config ClientConfig) *Client {
 // CreateClientSocket Initializes client socket. In case of
 // failure, error is printed in stdout/stderr and exit 1
 // is returned
-func (c *Client) createClientSocket() error {
+func (c *Client) createClientSocket(exitChan <-chan struct{}) error {
 	conn, err := net.Dial("tcp", c.config.ServerAddress)
 	if err != nil {
-		log.Criticalf(
-			"action: connect | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			err,
-		)
+		select {
+			case <-exitChan:
+				log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
+			default:
+				log.Criticalf("action: connect | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		}
+		return err
 	}
 	c.conn = conn
 	return nil
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop() {
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM)
+func (c *Client) StartClientLoop(exitChan <-chan struct{}) {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 		select {
-			case <-sigChan:
-				log.Infof("action: receive_sigterm | result: success | client_id: %v", c.config.ID)
-				if c.conn != nil {
-					c.conn.Close()
-					log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
-				}
+			case <-exitChan:
+				log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
 				return
 			default:
 		}
 		// Create the connection the server in every loop iteration. Send an
-		c.createClientSocket()
+		err := c.createClientSocket(exitChan)
+		if err != nil {
+			return
+		}
 
 		// TODO: Modify the send to avoid short-write
 		fmt.Fprintf(
@@ -83,10 +80,12 @@ func (c *Client) StartClientLoop() {
 		c.conn.Close()
 
 		if err != nil {
-			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-				c.config.ID,
-				err,
-			)
+			select {
+				case <-exitChan:
+					log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
+				default:
+					log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			}
 			return
 		}
 
@@ -97,8 +96,8 @@ func (c *Client) StartClientLoop() {
 
 		// Wait a time between sending one message and the next one
 		select {
-			case <-sigChan:
-				log.Infof("action: receive_sigterm | result: success | client_id: %v", c.config.ID)
+			case <-exitChan:
+				log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
 				return
 			case <-time.After(c.config.LoopPeriod):
 		}
