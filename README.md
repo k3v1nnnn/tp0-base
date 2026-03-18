@@ -1,14 +1,16 @@
-# SOLUCION EJ3
-Agregamos el archivo `validar-echo-server.sh` que permite ejecutar un comando para levantar un contenedor a apartir de una imagen muy chica `busybox` que ya contiene `netcat`, este contenedor solo se va a comunicar con el server para luego ser eliminado esto lo hacemos con los flags `--rm` y `--network`
-
+# SOLUCION EJ4
+Se implementó en el servidor y en el cliente la detección de la señal `SIGTERM` para poder cerrar recursos y salir de forma elegante (*graceful shutdown*).
+## Servidor
+Se usó el módulo `signal` de Python para capturar `SIGTERM`. Al recibirla, se apaga un flag y se cierra el socket del servidor, lo que interrumpe el `accept()` bloqueante y permite salir del loop limpiamente.
+## Cliente
+Se usó `os/signal` de Go para escuchar `SIGTERM` en una goroutine separada. Al recibirla, se cierra un canal `exitChan` que es verificado en los puntos clave del loop (antes de conectar, durante la espera y al recibir errores de red), permitiendo distinguir entre un error real y una salida solicitada.
 ## Para ejecutarlo:
-
 ```bash
 ./generar-compose.sh docker-compose-dev.yaml 2
 
 make docker-compose-up
 
-./validar-echo-server.sh
+make docker-compose-down
 ```
 
 # TP0: Docker + Comunicaciones + Concurrencia
