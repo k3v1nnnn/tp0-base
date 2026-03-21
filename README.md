@@ -1,14 +1,44 @@
-# SOLUCION EJ4
-Se implementó en el servidor y en el cliente la detección de la señal `SIGTERM` para poder cerrar recursos y salir de forma elegante (*graceful shutdown*).
-## Servidor
-Se usó el módulo `signal` de Python para capturar `SIGTERM`. Al recibirla, se apaga un flag y se cierra el socket del servidor, lo que interrumpe el `accept()` bloqueante y permite salir del loop limpiamente.
-## Cliente
-Se usó `os/signal` de Go para escuchar `SIGTERM` en una goroutine separada. Al recibirla, se cierra un canal `exitChan` que es verificado en los puntos clave del loop (antes de conectar, durante la espera y al recibir errores de red), permitiendo distinguir entre un error real y una salida solicitada.
+# SOLUCION EJ5
+
+## Protocolo de comunicación
+
+Cada mensaje tiene la siguiente estructura:
+
+```
+HEADER (4 bytes) +  PAYLOAD (N bytes)
+```
+
+El **header** contiene la longitud del **payload** en 4 bytes big-endian. El receptor lee primero el header, obtiene la longitud `N`, y luego lee exactamente `N` bytes del payload. Esto evita los fenómenos de *short read* y *short write* ya que tanto el emisor como el receptor iteran en un loop hasta haber enviado/recibido la totalidad de los bytes.
+
+### Mensaje de apuesta (cliente -> servidor)
+
+El payload es un string con los campos de la apuesta separados por `|`:
+
+```
+nombre|apellido|documento|nacimiento|numero|agencia
+```
+
+### Respuesta (servidor -> cliente)
+
+El servidor responde con el mismo esquema header+payload. El payload es `OK` si la apuesta fue almacenada correctamente.
+
+## Separación de incumbencias
+
+| Módulo | Responsabilidad |
+|---|---|
+| `bet.go` / dominio | Modelo de la apuesta |
+| `serializer.go` / `serializer.py` | Serialización y deserialización del payload |
+| `protocol.go` / `protocol.py` | Transporte: envío y recepción con length-prefix |
+| `client.go` / `server.py` | Lógica de negocio |
+
 ## Para ejecutarlo:
+
 ```bash
-./generar-compose.sh docker-compose-dev.yaml 2
+./generar-compose.sh docker-compose-dev.yaml 5
 
 make docker-compose-up
+
+make docker-compose-logs
 
 make docker-compose-down
 ```
