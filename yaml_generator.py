@@ -7,6 +7,11 @@ def client(id):
     entrypoint: /client
     environment:
       - CLI_ID={id}
+      - NOMBRE=Nombre{id}
+      - APELLIDO=Apellido{id}
+      - DOCUMENTO=DNI{id}
+      - NACIMIENTO=2000-01-0{id}
+      - NUMERO=000{id}
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:

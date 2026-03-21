@@ -6,10 +6,8 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/op/go-logging"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/common"
@@ -36,9 +34,12 @@ func InitConfig() (*viper.Viper, error) {
 	// Add env variables supported
 	v.BindEnv("id")
 	v.BindEnv("server", "address")
-	v.BindEnv("loop", "period")
-	v.BindEnv("loop", "amount")
 	v.BindEnv("log", "level")
+	v.BindEnv("firstName", "NOMBRE")
+	v.BindEnv("lastName", "APELLIDO")
+	v.BindEnv("document", "DOCUMENTO")
+	v.BindEnv("birthdate", "NACIMIENTO")
+	v.BindEnv("number", "NUMERO")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -47,12 +48,6 @@ func InitConfig() (*viper.Viper, error) {
 	v.SetConfigFile("./config.yaml")
 	if err := v.ReadInConfig(); err != nil {
 		fmt.Printf("Configuration could not be read from config file. Using env variables instead")
-	}
-
-	// Parse time.Duration variables and return an error if those variables cannot be parsed
-
-	if _, err := time.ParseDuration(v.GetString("loop.period")); err != nil {
-		return nil, errors.Wrapf(err, "Could not parse CLI_LOOP_PERIOD env var as time.Duration.")
 	}
 
 	return v, nil
@@ -83,12 +78,15 @@ func InitLogger(logLevel string) error {
 // PrintConfig Print all the configuration parameters of the program.
 // For debugging purposes only
 func PrintConfig(v *viper.Viper) {
-	log.Infof("action: config | result: success | client_id: %s | server_address: %s | loop_amount: %v | loop_period: %v | log_level: %s",
+	log.Infof("action: config | result: success | client_id: %s | server_address: %s | log_level: %s | firstName: %s | lastName: %s | document: %s | birthdate: %s | number: %s",
 		v.GetString("id"),
 		v.GetString("server.address"),
-		v.GetInt("loop.amount"),
-		v.GetDuration("loop.period"),
 		v.GetString("log.level"),
+		v.GetString("firstName"),
+		v.GetString("lastName"),
+		v.GetString("document"),
+		v.GetString("birthdate"),
+		v.GetString("number"),
 	)
 }
 
@@ -108,8 +106,11 @@ func main() {
 	clientConfig := common.ClientConfig{
 		ServerAddress: v.GetString("server.address"),
 		ID:            v.GetString("id"),
-		LoopAmount:    v.GetInt("loop.amount"),
-		LoopPeriod:    v.GetDuration("loop.period"),
+		FirstName:     v.GetString("firstName"),
+		LastName:      v.GetString("lastName"),
+		Document:      v.GetString("document"),
+		Birthdate:     v.GetString("birthdate"),
+		Number:        v.GetString("number"),
 	}
 
 	sigChan := make(chan os.Signal, 1)
@@ -122,5 +123,5 @@ func main() {
 	}()
 
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop(exitChan)
+	client.StartClient(exitChan)
 }
