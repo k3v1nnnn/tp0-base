@@ -45,11 +45,7 @@ func (p *Protocol) Send(payload string) error {
 	data := []byte(payload)
 	header := make([]byte, 4)
 	binary.BigEndian.PutUint32(header, uint32(len(data)))
-
-	if err := p.send(header); err != nil {
-		return err
-	}
-	return p.send(data)
+	return p.send(append(header, data...))
 }
 
 func (p *Protocol) RecvResponse() (string, error) {
