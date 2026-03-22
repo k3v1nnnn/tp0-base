@@ -35,11 +35,8 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("id")
 	v.BindEnv("server", "address")
 	v.BindEnv("log", "level")
-	v.BindEnv("firstName", "NOMBRE")
-	v.BindEnv("lastName", "APELLIDO")
-	v.BindEnv("document", "DOCUMENTO")
-	v.BindEnv("birthdate", "NACIMIENTO")
-	v.BindEnv("number", "NUMERO")
+	v.BindEnv("filePath", "FILE")
+	v.BindEnv("batch.maxAmount")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -78,15 +75,12 @@ func InitLogger(logLevel string) error {
 // PrintConfig Print all the configuration parameters of the program.
 // For debugging purposes only
 func PrintConfig(v *viper.Viper) {
-	log.Infof("action: config | result: success | client_id: %s | server_address: %s | log_level: %s | firstName: %s | lastName: %s | document: %s | birthdate: %s | number: %s",
+	log.Infof("action: config | result: success | client_id: %s | server_address: %s | log_level: %s | filePath: %s | batch_max_amount: %d",
 		v.GetString("id"),
 		v.GetString("server.address"),
 		v.GetString("log.level"),
-		v.GetString("firstName"),
-		v.GetString("lastName"),
-		v.GetString("document"),
-		v.GetString("birthdate"),
-		v.GetString("number"),
+		v.GetString("filePath"),
+		v.GetInt("batch.maxAmount"),
 	)
 }
 
@@ -104,13 +98,10 @@ func main() {
 	PrintConfig(v)
 
 	clientConfig := common.ClientConfig{
-		ServerAddress: v.GetString("server.address"),
-		ID:            v.GetString("id"),
-		FirstName:     v.GetString("firstName"),
-		LastName:      v.GetString("lastName"),
-		Document:      v.GetString("document"),
-		Birthdate:     v.GetString("birthdate"),
-		Number:        v.GetString("number"),
+		ServerAddress:  v.GetString("server.address"),
+		ID:             v.GetString("id"),
+		FilePath:       v.GetString("filePath"),
+		BatchMaxAmount: v.GetInt("batch.maxAmount"),
 	}
 
 	sigChan := make(chan os.Signal, 1)

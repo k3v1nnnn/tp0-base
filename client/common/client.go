@@ -10,13 +10,10 @@ var log = logging.MustGetLogger("log")
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
-	ID            string
-	ServerAddress string
-	FirstName     string
-	LastName      string
-	Document      string
-	Birthdate     string
-	Number        string
+	ID             string
+	ServerAddress  string
+	FilePath       string
+	BatchMaxAmount int
 }
 
 // Client Entity that encapsulates how
@@ -41,10 +38,10 @@ func (c *Client) createClientSocket(exitChan <-chan struct{}) error {
 	conn, err := net.Dial("tcp", c.config.ServerAddress)
 	if err != nil {
 		select {
-			case <-exitChan:
-				log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
-			default:
-				log.Criticalf("action: connect | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		case <-exitChan:
+			log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
+		default:
+			log.Criticalf("action: connect | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		}
 		return err
 	}
@@ -54,54 +51,84 @@ func (c *Client) createClientSocket(exitChan <-chan struct{}) error {
 
 func (c *Client) StartClient(exitChan <-chan struct{}) {
 	select {
-		case <-exitChan:
-			log.Infof("action: exit | result: success | client_id: %v", c.config.ID)
-			return
-		default:
+	case <-exitChan:
+		log.Infof("action: exit | result: success | client_id: %v", c.config.ID)
+		return
+	default:
 	}
 	err := c.createClientSocket(exitChan)
 	if err != nil {
 		return
 	}
-
-	bet := Bet{
-		AgencyID:  c.config.ID,
-		FirstName: c.config.FirstName,
-		LastName:  c.config.LastName,
-		Document:  c.config.Document,
-		Birthdate: c.config.Birthdate,
-		Number:    c.config.Number,
+	protocol := NewProtocol(c.conn)
+	batcher := NewBatcher(c.config.BatchMaxAmount)
+	reader := NewCSVReader(c.config.FilePath)
+	err = reader.Open()
+	if err != nil {
+		log.Errorf("action: read_file | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		c.conn.Close()
+		log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
+		return
+	}
+	defer reader.Close()
+	csvBet := NewCSVBet(reader)
+	readErr := false
+	for {
+		bet, err := csvBet.NextBet(c.config.ID)
+		if err == ErrEndOfFile {
+			break
+		}
+		if err != nil {
+			log.Errorf("action: read_bet | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			readErr = true
+			break
+		}
+		if batcher.CanAddBet(bet) {
+			batcher.AddBet(bet)
+		} else {
+			payload := batcher.GetBatch()
+			if err := protocol.Send(payload); err != nil {
+				log.Errorf("action: send_bet | result: fail | client_id: %v | error: %v", c.config.ID, err)
+				c.conn.Close()
+				return
+			}
+			batcher.Clean(bet)
+		}
 	}
 
-	protocol := NewProtocol(c.conn)
-	payload := SerializeBet(bet)
+	if readErr {
+		c.conn.Close()
+		return
+	}
 
-	if err := protocol.Send(payload); err != nil {
-		log.Errorf("action: send_bet | result: fail | client_id: %v | error: %v",
-			c.config.ID, err)
+	if !batcher.IsEmpty() {
+		payload := batcher.GetBatch()
+		if err := protocol.Send(payload); err != nil {
+			log.Errorf("action: send_bet | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			c.conn.Close()
+			return
+		}
+	}
+
+	if err := protocol.Send("END"); err != nil {
+		log.Errorf("action: send_bet | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		c.conn.Close()
 		return
 	}
 
 	response, err := protocol.RecvResponse()
 	if err != nil {
-		log.Errorf("action: receive_response | result: fail | client_id: %v | error: %v",
-			c.config.ID, err)
+		log.Errorf("action: receive_response | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		c.conn.Close()
 		log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
 		return
 	}
-	log.Infof("action: receive_response | result: success | client_id: %v | response: %v",
-		c.config.ID, response)
-
+	log.Infof("action: receive_response | result: success | client_id: %v | response: %v", c.config.ID, response)
 	if response == "OK" {
-		log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
-			c.config.Document, c.config.Number)
+		log.Infof("action: apuesta_enviada | result: success | client_id: %v", c.config.ID)
 	} else {
-		log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | response: %v",
-			c.config.ID, response)
+		log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | response: %v", c.config.ID, response)
 	}
-
 	c.conn.Close()
 	log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
 }

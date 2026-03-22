@@ -3,6 +3,7 @@ import logging
 import signal
 from common.protocol import recv, send_response
 from common.serializer import unserialize_bet
+from common.batcher import split_batch
 from common.utils import Bet, store_bets
 
 
@@ -37,19 +38,34 @@ class Server:
 
     def __handle_client_connection(self, client_sock):
         try:
-            bet_data = unserialize_bet(recv(client_sock))
-            bet = Bet(
-                agency=bet_data["agency_id"],
-                first_name=bet_data["first_name"],
-                last_name=bet_data["last_name"],
-                document=bet_data["document"],
-                birthdate=bet_data["birthdate"],
-                number=bet_data["number"],
-            )
-            store_bets([bet])
-            logging.info(f"action: apuesta_almacenada | result: success | dni: {bet_data['document']} | numero: {bet_data['number']}")
-            send_response(client_sock, "OK")
-            logging.info(f"action: send_response | result: success | client_id: {bet_data['agency_id']}")
+            agency_id = None
+            success = True
+            message = recv(client_sock)
+            while message != 'END':
+                bets_data = list(map(unserialize_bet, split_batch(message)))
+                bets = []
+                for bet_data in bets_data:
+                    if agency_id is None:
+                        agency_id = bet_data["agency_id"]
+                    bets.append(
+                        Bet(
+                            agency=bet_data["agency_id"],
+                            first_name=bet_data["first_name"],
+                            last_name=bet_data["last_name"],
+                            document=bet_data["document"],
+                            birthdate=bet_data["birthdate"],
+                            number=bet_data["number"],
+                        )
+                    )
+                try:
+                    store_bets(bets)
+                    logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
+                except Exception as e:
+                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
+                    success = False
+                message = recv(client_sock)
+            send_response(client_sock, "OK" if success else "ERROR")
+            logging.info(f"action: send_response | result: success | client_id: {agency_id}")
         except OSError as e:
             logging.error(f"action: receive_bet | result: fail | error: {e}")
         finally:
