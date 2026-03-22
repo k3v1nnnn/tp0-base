@@ -69,6 +69,7 @@ func (c *Client) createClientSocket(exitChan <-chan struct{}) error {
 		return err
 	}
 	c.conn = conn
+	log.Infof("action: connect | result: success | client_id: %v", c.config.ID)
 	return nil
 }
 
@@ -124,17 +125,21 @@ func (c *Client) StartClient(exitChan <-chan struct{}) {
 	}
 
 	if err := protocol.Send("END"); err != nil {
-		log.Errorf("action: send_finish_flag | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		log.Errorf("action: send_end | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		c.closeConnection()
 		return
 	}
 
 	response, err := protocol.RecvResponse()
 	if err != nil {
-		log.Errorf("action: receive_response | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		log.Errorf("action: receive_end_response | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		c.closeConnection()
 		return
 	}
-	log.Infof("action: receive_response | result: success | client_id: %v | response: %v", c.config.ID, response)
+	if response == "OK" {
+		log.Infof("action: receive_end_response | result: success | client_id: %v", c.config.ID)
+	} else {
+		log.Errorf("action: receive_end_response | result: fail | client_id: %v | response: %v", c.config.ID, response)
+	}
 	c.closeConnection()
 }

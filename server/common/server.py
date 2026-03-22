@@ -61,17 +61,18 @@ class Server:
                     store_bets(bets)
                     logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
                 except Exception as e:
-                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
+                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)} | error: {e}")
                     success = False
                 send_response(client_sock, "OK" if success else "ERROR")
-                logging.info(f"action: send_response | result: success | client_id: {agency_id}")
+                logging.info(f"action: send_batch_response | result: success | client_id: {agency_id}")
                 message = recv(client_sock)
             send_response(client_sock, "OK")
-            logging.info(f"action: send_response | result: success | client_id: {agency_id}")
+            logging.info(f"action: send_end_response | result: success | client_id: {agency_id}")
         except OSError as e:
-            logging.error(f"action: receive_bet | result: fail | error: {e}")
+            logging.error(f"action: handle_client_connection | result: fail | error: {e}")
         finally:
             client_sock.close()
+            logging.info(f"action: close_connection | result: success | client_id: {agency_id}")
 
     def __accept_new_connection(self):
         """
