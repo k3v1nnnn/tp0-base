@@ -1,35 +1,24 @@
-# SOLUCION EJ5
+# SOLUCION EJ6
 
-## Protocolo de comunicación
+## Envío de apuestas en batches
 
-Cada mensaje tiene la siguiente estructura:
+Obtenemos las apuestas desde un archivo CSV (`agency-{N}.csv`) y las envía en grupos (*batches*) al servidor. La cantidad máxima de apuestas por batch es configurable desde `config.yaml`.
 
-```
-HEADER (4 bytes) +  PAYLOAD (N bytes)
-```
+### Protocolo de batch (cliente -> servidor)
 
-El **header** contiene la longitud del **payload** en 4 bytes big-endian. El receptor lee primero el header, obtiene la longitud `N`, y luego lee exactamente `N` bytes del payload. Esto evita los fenómenos de *short read* y *short write* ya que tanto el emisor como el receptor iteran en un loop hasta haber enviado/recibido la totalidad de los bytes.
-
-### Mensaje de apuesta (cliente -> servidor)
-
-El payload es un string con los campos de la apuesta separados por `|`:
+Se reutiliza el mismo protocolo `header+payload` del ej5. El payload de cada batch es un string con las apuestas separadas por `#`, donde cada apuesta sigue el mismo formato:
 
 ```
 nombre|apellido|documento|nacimiento|numero|agencia
 ```
 
+Al finalizar el envío, el cliente manda un mensaje `END` para indicar que no hay más apuestas.
+
 ### Respuesta (servidor -> cliente)
 
-El servidor responde con el mismo esquema header+payload. El payload es `OK` si la apuesta fue almacenada correctamente.
+El servidor responde `OK` si todas las apuestas del batch fueron almacenadas correctamente, o `ERROR` en caso contrario. 
 
-## Separación de incumbencias
-
-| Módulo | Responsabilidad |
-|---|---|
-| `bet.go` / dominio | Modelo de la apuesta |
-| `serializer.go` / `serializer.py` | Serialización y deserialización del payload |
-| `protocol.go` / `protocol.py` | Transporte: envío y recepción con length-prefix |
-| `client.go` / `server.py` | Lógica de negocio |
+En todos los casos de `ERROR` se ignora ese batch y se sigue procesando los siguientes
 
 ## Para ejecutarlo:
 
