@@ -5,6 +5,7 @@ import (
 )
 
 const batchSeparator = "#"
+const maxBatchBytes = 8 * 1024
 
 type Batcher struct {
 	batch     string
@@ -19,10 +20,20 @@ func NewBatcher(maxAmount int) *Batcher {
 }
 
 func (b *Batcher) CanAddBet(bet Bet) bool {
+	serialized := SerializeBet(bet)
+	var newBatch string
 	if b.batch == "" {
-		return 1 <= b.maxAmount
+		newBatch = serialized
+	} else {
+		newBatch = b.batch + batchSeparator + serialized
+	}
+	if len(newBatch) > maxBatchBytes {
+		return false
 	}
 	current := strings.Count(b.batch, batchSeparator) + 1
+	if b.batch == "" {
+		current = 0
+	}
 	return current+1 <= b.maxAmount
 }
 
