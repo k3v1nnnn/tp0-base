@@ -7,7 +7,7 @@ def client(id):
     entrypoint: /client
     environment:
       - CLI_ID={id}
-      - CLI_FILE=/data/agency-{id}.csv
+      - FILE=/data/agency-{id}.csv
     volumes:
       - ./client/config.yaml:/config.yaml
       - ./.data/agency-{id}.csv:/data/agency-{id}.csv

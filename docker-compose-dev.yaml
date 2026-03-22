@@ -17,10 +17,10 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=1
-      - FILE=agency-1.csv
+      - FILE=/data/agency-1.csv
     volumes:
       - ./client/config.yaml:/config.yaml
-      - ./.data/agency-1.csv:/agency-1.csv
+      - ./.data/agency-1.csv:/data/agency-1.csv
     networks:
       - testing_net
     depends_on:
