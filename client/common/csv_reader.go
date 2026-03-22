@@ -10,13 +10,11 @@ type CsvReader struct {
 	path string
 	file *os.File
 	csv *csv.Reader
-	end bool
 }
 
 func NewCSVReader(path string) *CsvReader {
 	csvReader := &CsvReader{
 		path: path,
-		end: false,
 	}
 	return csvReader
 }
@@ -45,14 +43,9 @@ func (cr *CsvReader) Next() ([]string, error) {
     row, err := cr.csv.Read()
     if err != nil {
 		if err == io.EOF {
-			cr.end = true
 			return nil, nil
 		}
         return nil, err
     }
     return row, nil
-}
-
-func (cr *CsvReader) IsEnd() bool {
-	return cr.end
 }

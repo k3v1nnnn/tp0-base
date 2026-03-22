@@ -1,27 +1,20 @@
 package common
 
-import "errors"
-
-var ErrEndOfFile = errors.New("end of file")
-
 type CsvBet struct {
 	reader *CsvReader
 }
 
 func NewCSVBet(reader *CsvReader) *CsvBet {
-	csvBet := &CsvBet{
-		reader: reader,
-	}
-	return csvBet
+	return &CsvBet{reader: reader}
 }
 
-func (cb *CsvBet) NextBet(agencyId string) (Bet, error) {
+func (cb *CsvBet) NextBet(agencyId string) (Bet, bool, error) {
 	row, err := cb.reader.Next()
-	if err != nil {
-		return Bet{}, err
-	}
 	if row == nil {
-		return Bet{}, ErrEndOfFile
+		return Bet{}, true, nil
+	}
+	if err != nil {
+		return Bet{}, false, err
 	}
 	return Bet{
 		AgencyID:  agencyId,
@@ -30,5 +23,5 @@ func (cb *CsvBet) NextBet(agencyId string) (Bet, error) {
 		Document:  row[2],
 		Birthdate: row[3],
 		Number:    row[4],
-	}, nil
+	}, false, nil
 }

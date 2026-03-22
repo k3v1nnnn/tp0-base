@@ -30,9 +30,9 @@ func (b *Batcher) CanAddBet(bet Bet) bool {
 	if len(newBatch) > maxBatchBytes {
 		return false
 	}
-	current := strings.Count(b.batch, batchSeparator) + 1
-	if b.batch == "" {
-		current = 0
+	var current int
+	if b.batch != "" {
+		current = strings.Count(b.batch, batchSeparator) + 1
 	}
 	return current+1 <= b.maxAmount
 }
@@ -49,6 +49,7 @@ func (b *Batcher) AddBet(bet Bet) {
 func (b *Batcher) Clean(bet Bet) {
 	b.batch = SerializeBet(bet)
 }
+
 
 func (b *Batcher) GetBatch() string {
 	return b.batch

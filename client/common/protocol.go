@@ -9,11 +9,8 @@ type Protocol struct {
 	conn   net.Conn
 }
 
-func NewProtocol(conn   net.Conn) *Protocol {
-	protocol := &Protocol{
-		conn: conn,
-	}
-	return protocol
+func NewProtocol(conn net.Conn) *Protocol {
+	return &Protocol{conn: conn}
 }
 
 func (p *Protocol) send(data []byte) error {

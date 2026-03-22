@@ -38,10 +38,10 @@ class Server:
 
     def __handle_client_connection(self, client_sock):
         try:
-            agency_id = None
-            success = True
             message = recv(client_sock)
             while message != 'END':
+                agency_id = None
+                success = True
                 bets_data = list(map(unserialize_bet, split_batch(message)))
                 bets = []
                 for bet_data in bets_data:
@@ -63,8 +63,10 @@ class Server:
                 except Exception as e:
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
                     success = False
+                send_response(client_sock, "OK" if success else "ERROR")
+                logging.info(f"action: send_response | result: success | client_id: {agency_id}")
                 message = recv(client_sock)
-            send_response(client_sock, "OK" if success else "ERROR")
+            send_response(client_sock, "OK")
             logging.info(f"action: send_response | result: success | client_id: {agency_id}")
         except OSError as e:
             logging.error(f"action: receive_bet | result: fail | error: {e}")
