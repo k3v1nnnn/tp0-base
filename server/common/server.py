@@ -33,6 +33,7 @@ class Server:
                 self.__handle_client_connection(client_sock)
             except OSError:
                 break
+        self.__safe_server_socket_close()
         logging.info("action: server_shutdown | result: success")
 
     def __handle_client_connection(self, client_sock):

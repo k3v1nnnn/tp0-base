@@ -39,6 +39,3 @@ class BetsHandler(Handler):
         send_response(self.client_sock, "OK")
         logging.info(f"action: send_end_response | result: success | client_id: {agency_id}")
         self.lottery.add_agency(agency_id)
-        if self.lottery.can_start():
-            self.lottery.start()
-            logging.info("action: sorteo | result: success")

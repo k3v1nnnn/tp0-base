@@ -34,6 +34,13 @@ func runBetsHandler(c *Client, exitChan <-chan struct{}) bool {
 	csvBet := NewCSVBet(reader)
 
 	for {
+		select {
+		case <-exitChan:
+			log.Infof("action: exit | result: success | client_id: %v", c.config.ID)
+			c.closeConnection()
+			return false
+		default:
+		}
 		bet, finished, err := csvBet.NextBet(c.config.ID)
 		if finished {
 			break

@@ -1,3 +1,4 @@
+import logging
 from common.lottery_status import LotteryStatus
 from common.utils import store_bets, load_bets, has_won
 
@@ -10,11 +11,11 @@ class Lottery:
 
     def add_agency(self, agency):
         self.agencies[int(agency)] = []
+        if len(self.agencies) == self.total_participants:
+            self._start()
+            logging.info("action: sorteo | result: success")
 
-    def can_start(self):
-        return len(self.agencies) == self.total_participants
-
-    def start(self):
+    def _start(self):
         for bet in load_bets():
             if has_won(bet):
                 self.agencies[bet.agency].append(bet.document)
