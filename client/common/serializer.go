@@ -1,12 +1,10 @@
 package common
 
-import (
-	"strings"
-)
+import "strings"
 
 const separator = "|"
 
-func SerializeBet(bet Bet) string{
+func SerializeBet(bet Bet) string {
 	return strings.Join([]string{
 		bet.FirstName,
 		bet.LastName,
@@ -15,4 +13,12 @@ func SerializeBet(bet Bet) string{
 		bet.Number,
 		bet.AgencyID,
 	}, separator)
+}
+
+func SerializeWinnerFlag(agency string) string {
+	return strings.Join([]string{"WINNERS", agency}, separator)
+}
+
+func UnserializeWinners(winners string) []string {
+	return strings.Split(winners, separator)
 }
