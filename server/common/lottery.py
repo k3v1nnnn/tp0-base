@@ -3,9 +3,8 @@ from common.utils import store_bets, load_bets, has_won
 
 
 class Lottery:
-    TOTAL_PARTICIPANTS = 5
-
-    def __init__(self):
+    def __init__(self, total_participants):
+        self.total_participants = total_participants
         self.agencies = {}
         self.status = LotteryStatus.WAITING
 
@@ -13,7 +12,7 @@ class Lottery:
         self.agencies[int(agency)] = []
 
     def can_start(self):
-        return len(self.agencies) == Lottery.TOTAL_PARTICIPANTS
+        return len(self.agencies) == self.total_participants
 
     def start(self):
         for bet in load_bets():

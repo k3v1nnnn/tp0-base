@@ -14,4 +14,4 @@ class WinnersHandler(Handler):
             return
         winners = self.lottery.winners(agency_id)
         send_response(self.client_sock, serialize_winners(winners))
-        logging.info(f"action: consulta_ganadores | result: success | client_id: {agency_id} | cant_ganadores: {len(winners)}")
+        logging.info(f"action: send_winners | result: success | client_id: {agency_id} | cant_ganadores: {len(winners)}")

@@ -7,12 +7,12 @@ from common.handler_factory import HandlerFactory
 
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, agencies):
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._server_running = True
-        self._lottery = Lottery()
+        self._lottery = Lottery(agencies)
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
     def __safe_server_socket_close(self):

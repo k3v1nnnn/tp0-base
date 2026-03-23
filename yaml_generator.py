@@ -18,7 +18,7 @@ def client(id):
 """
 
 def yaml(n_clients):
-    server = """\
+    server = f"""\
 name: tp0
 services:
   server:
@@ -27,6 +27,7 @@ services:
     entrypoint: python3 /main.py
     environment:
       - PYTHONUNBUFFERED=1
+      - AGENCIES={n_clients}
     volumes:
       - ./server/config.ini:/config.ini
     networks:
