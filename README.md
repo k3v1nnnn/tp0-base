@@ -1,35 +1,32 @@
-# SOLUCION EJ6
+# SOLUCION EJ7
 
-## Envío de apuestas en batches
+  ## Notificación de fin y consulta de ganadores
 
-Obtenemos las apuestas desde un archivo CSV (`agency-{N}.csv`) y las envía en grupos (*batches*) al servidor. La cantidad máxima de apuestas por batch es configurable desde `config.yaml`.
+  Al terminar de enviar todas las apuestas, el cliente notifica al servidor con un mensaje `END`. Luego consulta los ganadores de su agencia en un loop con backoff exponencial (hasta 10 reintentos) hasta que el servidor responda con los resultados.
 
-### Protocolo de batch (cliente -> servidor)
+  El servidor espera recibir el `END` de todas las agencias antes de realizar el sorteo. Mientras no se completó el sorteo, responde `WAIT` a las consultas de ganadores.
 
-Se reutiliza el mismo protocolo `header+payload` del ej5. El payload de cada batch es un string con las apuestas separadas por `#`, donde cada apuesta sigue el mismo formato:
+  ### Protocolo de consulta (cliente -> servidor)
 
-```
-nombre|apellido|documento|nacimiento|numero|agencia
-```
+  El cliente envía un mensaje con el id de su agencia para consultar los ganadores:
 
-Al finalizar el envío, el cliente manda un mensaje `END` para indicar que no hay más apuestas.
+  WINNERS_FLAG|agencia
 
-### Respuesta (servidor -> cliente)
+  ### Respuesta (servidor -> cliente)
 
-El servidor responde `OK` si todas las apuestas del batch fueron almacenadas correctamente, o `ERROR` en caso contrario. 
+  - `WAIT` — el sorteo aún no se realizó, el cliente reintenta con backoff exponencial
+  - Lista de DNIs ganadores separados por `#` — el sorteo ya se realizó
 
-En todos los casos de `ERROR` se ignora ese batch y se sigue procesando los siguientes
+  ## Para ejecutarlo:
 
-## Para ejecutarlo:
+  ```bash
+  ./generar-compose.sh docker-compose-dev.yaml 5
 
-```bash
-./generar-compose.sh docker-compose-dev.yaml 5
+  make docker-compose-up
 
-make docker-compose-up
+  make docker-compose-logs
 
-make docker-compose-logs
-
-make docker-compose-down
+  make docker-compose-down
 ```
 
 # TP0: Docker + Comunicaciones + Concurrencia
