@@ -36,7 +36,12 @@ func runWinnersHandler(c *Client, exitChan <-chan struct{}) {
 		}
 		c.closeConnection()
 		if i < retries-1 {
-			time.Sleep(time.Duration(1<<i) * time.Second)
+			select {
+			case <-exitChan:
+				log.Infof("action: exit | result: success | client_id: %v", c.config.ID)
+				return
+			case <-time.After(time.Duration(1<<i) * time.Second):
+			}
 		}
 	}
 	log.Errorf("action: consulta_ganadores | result: fail | client_id: %v | error: max retries exceeded", c.config.ID)

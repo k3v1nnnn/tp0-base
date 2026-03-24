@@ -1,4 +1,5 @@
 import logging
+import threading
 from common.lottery_status import LotteryStatus
 from common.utils import store_bets, load_bets, has_won
 
@@ -6,14 +7,16 @@ from common.utils import store_bets, load_bets, has_won
 class Lottery:
     def __init__(self, total_participants):
         self.total_participants = total_participants
+        self.lock = threading.Lock()
         self.agencies = {}
         self.status = LotteryStatus.WAITING
 
     def add_agency(self, agency):
-        self.agencies[int(agency)] = []
-        if len(self.agencies) == self.total_participants:
-            self._start()
-            logging.info("action: sorteo | result: success")
+        with self.lock:
+            self.agencies[int(agency)] = []
+            if len(self.agencies) == self.total_participants:
+                self._start()
+                logging.info("action: sorteo | result: success")
 
     def _start(self):
         for bet in load_bets():
@@ -22,10 +25,13 @@ class Lottery:
         self.status = LotteryStatus.FINISHED
 
     def winners(self, agency):
-        return self.agencies.get(int(agency), [])
+        with self.lock:
+            return self.agencies.get(int(agency), [])
 
     def add_bets(self, bets):
-        store_bets(bets)
+        with self.lock:
+            store_bets(bets)
 
     def is_finish(self):
-        return self.status == LotteryStatus.FINISHED
+        with self.lock:
+            return self.status == LotteryStatus.FINISHED

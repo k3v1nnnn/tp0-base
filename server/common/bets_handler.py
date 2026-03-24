@@ -3,7 +3,6 @@ from common.handler import Handler
 from common.protocol import recv, send_response
 from common.serializer import unserialize_bet
 from common.batcher import split_batch
-from common.utils import Bet
 
 
 class BetsHandler(Handler):
@@ -12,21 +11,9 @@ class BetsHandler(Handler):
         agency_id = None
         while message != 'END':
             success = True
-            bets_data = list(map(unserialize_bet, split_batch(message)))
-            bets = []
-            for bet_data in bets_data:
-                if agency_id is None:
-                    agency_id = bet_data["agency_id"]
-                bets.append(
-                    Bet(
-                        agency=bet_data["agency_id"],
-                        first_name=bet_data["first_name"],
-                        last_name=bet_data["last_name"],
-                        document=bet_data["document"],
-                        birthdate=bet_data["birthdate"],
-                        number=bet_data["number"],
-                    )
-                )
+            bets = list(map(unserialize_bet, split_batch(message)))
+            if agency_id is None and bets:
+                agency_id = bets[0].agency
             try:
                 self.lottery.add_bets(bets)
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")

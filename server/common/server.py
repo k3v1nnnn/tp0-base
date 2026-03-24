@@ -4,6 +4,7 @@ import signal
 from common.protocol import recv
 from common.lottery import Lottery
 from common.handler_factory import HandlerFactory
+import threading
 
 
 class Server:
@@ -12,6 +13,7 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._server_running = True
+        self.threads = []
         self._lottery = Lottery(agencies)
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
@@ -30,10 +32,14 @@ class Server:
         while self._server_running:
             try:
                 client_sock = self.__accept_new_connection()
-                self.__handle_client_connection(client_sock)
+                t = threading.Thread(target=self.__handle_client_connection, args=(client_sock,))
+                self.threads.append(t)
+                t.start()
             except OSError:
                 break
         self.__safe_server_socket_close()
+        for t in self.threads:
+            t.join()
         logging.info("action: server_shutdown | result: success")
 
     def __handle_client_connection(self, client_sock):
