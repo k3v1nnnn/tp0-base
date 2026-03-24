@@ -1,21 +1,12 @@
-# SOLUCION EJ7
+# SOLUCION EJ8
 
-  ## Notificación de fin y consulta de ganadores
+  ## Concurrencia en el servidor
 
-  Al terminar de enviar todas las apuestas, el cliente notifica al servidor con un mensaje `END`. Luego consulta los ganadores de su agencia en un loop con backoff exponencial (hasta 10 reintentos) hasta que el servidor responda con los resultados.
+  Se modificó el servidor para aceptar y procesar conexiones en paralelo usando `threading`. Cada conexión entrante se maneja en un thread separado, permitiendo que múltiples clientes envíen apuestas simultáneamente.
 
-  El servidor espera recibir el `END` de todas las agencias antes de realizar el sorteo. Mientras no se completó el sorteo, responde `WAIT` a las consultas de ganadores.
+  ### Sincronización
 
-  ### Protocolo de consulta (cliente -> servidor)
-
-  El cliente envía un mensaje con el id de su agencia para consultar los ganadores:
-
-  WINNERS_FLAG|agencia
-
-  ### Respuesta (servidor -> cliente)
-
-  - `WAIT` — el sorteo aún no se realizó, el cliente reintenta con backoff exponencial
-  - Lista de DNIs ganadores separados por `#` — el sorteo ya se realizó
+  El estado compartido de la clase `Lottery` se protege con un `threading.Lock()` para evitar condiciones de carrera. Las operaciones críticas (`add_agency`, `add_bets`, `winners`, `is_finish`) adquieren el  lock antes de acceder al estado.
 
   ## Para ejecutarlo:
 
